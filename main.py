@@ -10,8 +10,6 @@ group_id = '91430310'
 
 @app.route("/", methods=["POST"])
 def handle_request():
-    with open("log.txt", "a") as file:
-        file.write("received")
     if request.method == "POST":
         data = request.get_json()
         if data["name"] != "My Bot Name":
@@ -24,6 +22,4 @@ def handle_request():
     return "ok"
 
 if __name__ == "__main__":
-    with open("log.txt", "a") as file:
-        file.write("started")
     app.run(debug=True)
