@@ -29,4 +29,5 @@ def send_message(msg, group_id):
     return
 
 if __name__ == "__main__":
+    print('deploying')
     app.run(debug=True)
