@@ -23,7 +23,7 @@ def send_message(msg, group_id):
     print(bot_map[group_id])
     message = {
         'bot_id': bot_map[group_id],
-        'text': msg
+        'text': 'I hate you stop talking'
     }
     requests.post('https://api.groupme.com/v3/bots/post', json=message)
     return
