@@ -1,24 +1,19 @@
-Tokenization ideas
+Chatbot to assist Army ROTC detachment at UWF with distributing uniform information to the battalion
 
+Functionality:
+    Chatbot is hosted on Google App Engine and responds to all messages in relavant chats that begin with "Argo"
+    Chatbot is connected to Google's SQL API to maintain data on Army ROTC Battalion plans for the year
+    Chatbot can distribute relevant information requested
 
-class Chatbot:
-    def __init__(self):
-        self.question_keywords = {"when": 100, "where": 200, "what": 300}
-        self.subject_keywords = {"lab": 10, "pt": 20, "acft": 30, "pt test": 40, "ftx": 50, "fphysical training": 60}
-        self.time_keywords = {"tomorrow": 1, "today": 2, "next week": 3, "week after next week": 4, "week": 5, "month": 6, "day": 7}
-        self.month_keywords = {"january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6, "july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12}
-        self.day_keywords = {"monday": 1, "tuesday": 2, "wednesday": 3, "thursday": 4, "friday": 5, "saturday": 6, "sunday": 7}
+Methods:
+    Chatbot uses simplistic word tokenization to dissect information requested by users and display relevant feedback
+    Chatbot handles Groupme API calls using flask and App Engine hosting to send quick responses which vertically and horizontally scale
+    Chatbot handles incorrect requests by users by dissecting requests in relevant order and matching tokens to current context of conversation
 
-    def tokenize(self, message):
-        tokens = re.findall(r"[\w']+", message)
-        question_value = None
-        subject_value = None
-        time_value = None
-        month_value = None
-        day_value = None
-        for token in tokens:
-            if token.lower() in self.question_keywords:
-                question_value = self.question_keywords[token.lower()]
-            if token.lower() in self.subject_keywords:
-                subject_value = self.subject_keywords[token.lower()]
-            if token.lower() in self.time_keywords:
+Use Cases:
+    If a user needs information on upcoming training event, this week/month, next week/month, or at a specific date
+    Example: Argo when is lab this week
+
+Upcoming functionality:
+    Handle days of week i.e "Argo when is lab this Thursday"
+    Handle requested schedule by cadre i.e Argo bot sends information on lab for the week every Wednesday

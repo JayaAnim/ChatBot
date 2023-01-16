@@ -1,0 +1,47 @@
+Tokenization variables:
+
+    self.tokens - All words to tokenize
+
+    self.token_error - Error codes to keep track of when dissecting with Tokenization
+
+    self.question_type - Type of question asked "Where When What"
+
+    self.subject - Subject of question "Lab ACFT PT FTX"
+
+    self.time_frame_start - Date to begin SQL search at
+
+    self.time_frame_end - Date to end SQL search at
+
+Tokenization errors:
+
+    1 - Date specified is outside of current year
+
+    2 - Date specified is before current date
+
+    3 - Date specified is invalid (i.e 40th of January)
+
+Tokenization examples for time:
+
+    When is lab:
+
+    This week - SQL Query this WEEKN with day >= current, use all
+
+    Next week  - SQL Query next WEEKN, use all
+
+    This month - SQL Query this MONTHN with day >= current, use all
+
+    Next month - SQL Query next MONTHN, use all
+
+    This January - SQL Query this January with day >= current, use all
+
+    Next January -  INVALID, CANNOT REACH NEXT YEAR
+
+    This January 15 - SQL Query this January 15 if day <= current
+
+    Next January 15 - INVALID, CANNOT REACH NEXT YEAR
+
+    In January - SQL Query this January, use all
+
+    On January 15 - SQL Query this January 15
+
+    Nothing - SQL Query all with day >= current, use first

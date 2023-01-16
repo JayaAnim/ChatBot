@@ -11,8 +11,6 @@ class Tokenizer:
 
         self.question_type = None
         self.subject = None
-
-        self.time_frame_context_type = None
         self.time_frame_start = self.current_date.timetuple().tm_yday 
         self.time_frame_end = 364
 
