@@ -1,0 +1,40 @@
+Password for DB - Bella0121!
+SQL instance name - argochatbot
+SQL DB name - rotcspring
+Table name - spring
+
+To connect to gcloud instance - gcloud sql connect argochatbot
+To connect to DB - use rotcspring
+
+Table creation:
+CREATE TABLE spring (
+  id INT PRIMARY KEY,
+  event_type VARCHAR(5),
+  event_date_start VARCHAR(50),
+  event_date_end VARCHAR(50),
+  day_start INT,
+  day_end INT,
+  equipment_needed VARCHAR(250),
+  extra_equipment VARCHAR(100),
+  event_location VARCHAR(50),
+  event_focus VARCHAR(25),
+  cadre_comments VARCHAR(100),
+  KEY day_start (day_start),
+  KEY day_end (day_end)
+);
+
+Table insertion:
+INSERT INTO spring (id, event_type, event_date_start, event_date_end, day_start, day_end, equipment_needed, extra_equipment, event_location, event_focus, cadre_comments)
+VALUES (1, 'Type 1', '2022-01-01', '2022-01-02', 1, 2, 'equipment 1, equipment 2', 'extra equipment', 'location 1', 'focus 1', 'comments');
+
+id - Each insertion will be increased by 1 starting at 1 (primary key)
+event-type - acft, lab, pt, FTX
+event_date_start - Starting date (January 1st 2023, 4:00pm...)
+event_date_end - Ending date
+day_start - year day used for lookup (secondary key)
+day_end - year day used for lookup (secondary key)
+equipment_needed - string of equipment equipment_needed
+extra_equipment - string of extra equipment_needed
+event_location - string of event location (no formal format)
+event_focus - Focus of event (CST preparation, Land Nav...)
+cadre_comments - optional comments on event from cadre
