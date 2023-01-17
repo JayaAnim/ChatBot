@@ -1,5 +1,13 @@
 from datetime import datetime, timedelta, date
 import calendar
+from flask import jsonify
+import os
+import pymysql
+
+db_user = os.environ.get('CLOUD_SQL_USERNAME')
+db_password = os.environ.get('CLOUD_SQL_PASSWORD')
+db_name = os.environ.get('CLOUD_SQL_DATABASE_NAME')
+db_connection_name = os.environ.get('CLOUD_SQL_CONNECTION_NAME')
 
 class Tokenizer:
     def __init__(self):
@@ -43,6 +51,8 @@ class Tokenizer:
             self.subject = 3
         elif "ftx" in self.tokens:
             self.subject = 4
+        elif 'ruck' in self.tokens:
+            self.subject = 5
 
         if "next" in self.tokens:
             if any(month in self.tokens for month in month_names) and any(x.isdigit() for x in self.tokens):
@@ -102,7 +112,6 @@ class Tokenizer:
                     specified_date = datetime(self.current_date.year, list(calendar.month_name).index(month), self.current_date.day)
                     if specified_date.day < self.current_date.day:
                         self.token_error = 2
-                        print('date is less than current date')
                     elif specified_date.month == self.current_date.month:
                         self.time_frame_start = specified_date.timetuple().tm_yday
                         specified_date = specified_date.replace(day=1)
@@ -155,33 +164,163 @@ class Tokenizer:
             return 'Im sorry the date you requested is before the current date please ask information on events after the current date'
         elif self.token_error == 3:
             return 'Im sorry the date you requested is invalid please ask me for information using a valid date'
+
         #return the requested information if no error present
         if self.question_type == 1:
             if self.subject == 1:
-                return 'It looks like you are asking me what lab is ' + str(self.time_frame_start) + ' ' + str(self.time_frame_end)
+                command = 'SELECT * FROM spring WHERE event_type = "lab" AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_what(results, 'lab')
             elif self.subject == 2:
-                return 'It looks like you are asking me what pt is ' + str(self.time_frame_start) + ' ' + str(self.time_frame_end)
+                command = 'SELECT * FROM spring WHERE (event_type = "pt" OR event_type = "acft" OR event_type = "ruck") AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_what(results, 'lab/acft/ruck')
+                #include methods to see if a ruck or acft is in the specified time frame too
             elif self.subject == 3:
-                return 'It looks like you are asking me what acft is ' + str(self.time_frame_start) + ' ' + str(self.time_frame_end)
+                command = 'SELECT * FROM spring WHERE event_type = "acft" AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_what(results, 'acft')
             elif self.subject == 4:
-                return 'It looks like you are asking me what ftx is ' + str(self.time_frame_start) + ' ' + str(self.time_frame_end)
+                command = 'SELECT * FROM spring WHERE event_type = "ftx" AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_what(results, 'ftx')
+            elif self.subject == 5:
+                command = 'SELECT * FROM spring WHERE event_type = "ruck" AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_what(results, 'ruck')
         elif self.question_type == 2:
             if self.subject == 1:
-                return 'It looks like you are asking me where lab is ' + str(self.time_frame_start) + ' ' + str(self.time_frame_end)
+                command = 'SELECT event_date_start, event_location FROM spring WHERE event_type = "lab" AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_where(results, 'lab')
             elif self.subject == 2:
-                return 'It looks like you are asking me where pt is ' + str(self.time_frame_start) + ' ' + str(self.time_frame_end)
+                command = 'SELECT event_date_start, event_location FROM spring WHERE (event_type = "pt" OR event_type = "acft" OR event_type = "ruck") AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_where(results, 'pt/acft/ruck')
+                #include methods to see if a ruck or acft is the in the specified time frame too
             elif self.subject == 3:
-                return 'It looks like you are asking me where acft is ' + str(self.time_frame_start) + ' ' + str(self.time_frame_end)
+                command = 'SELECT event_date_start, event_location FROM spring WHERE event_type = "acft" AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_where(results, 'acft')
             elif self.subject == 4:
-                return 'It looks like you are asking me where ftx is ' + str(self.time_frame_start) + ' ' + str(self.time_frame_end)
+                command = 'SELECT event_date_start, event_location FROM spring WHERE event_type = "ftx" AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_where(results, 'ftx')
+            elif self.subject == 5:
+                command = 'SELECT event_date_start, event_location FROM spring WHERE event_type = "ruck" AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_where(results, 'ruck')
         elif self.question_type == 3:
             if self.subject == 1:
-                return 'It looks like you are asking me when lab is ' + str(self.time_frame_start) + ' ' + str(self.time_frame_end)
+                command = 'SELECT event_date_start, event_date_end FROM spring WHERE event_type = "lab" AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_when(results, 'lab')
             elif self.subject == 2:
-                return 'It looks like you are asking me when pt is ' + str(self.time_frame_start) + ' ' + str(self.time_frame_end)
+                command = 'SELECT event_date_start, event_date_end FROM spring WHERE (event_type = "pt" OR event_type = "acft" OR event_type = "ruck") AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_when(results, 'pt/acft/ruck')
+                #include methods to see if a ruck or acft is in the specified time frame too
             elif self.subject == 3:
-                return 'It looks like you are asking me when acft is ' + str(self.time_frame_start) + ' ' + str(self.time_frame_end)
+                command = 'SELECT event_date_start, event_date_end FROM spring WHERE event_type = "acft" AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_when(results, 'acft')
             elif self.subject == 4:
-                return 'It looks like you are asking me when ftx is ' + str(self.time_frame_start) + ' ' + str(self.time_frame_end)
+                command = 'SELECT event_date_start, event_date_end FROM spring WHERE event_type = "ftx" AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_when(results, 'ftx')
+            elif self.subject == 5:
+                command = 'SELECT event_date_start, event_date_end FROM spring WHERE event_type = "ruck" AND ' + str(self.time_frame_start) + ' <= day_start AND ' + str(self.time_frame_end) + ' >= day_start;'
+                print(command)
+                results = self.execute_command(command)
+                print(results)
+                return self.stringify_when(results, 'ruck')
         else:
             return 'Im sorry it looks like you are not asking me a question, please use what where or when to ask questions'
+
+    def open_connection(self):
+        unix_socket = '/cloudsql/{}'.format(db_connection_name)
+        conn = pymysql.connect(user=db_user, password=db_password,unix_socket=unix_socket, db=db_name,cursorclass=pymysql.cursors.DictCursor)
+        return conn
+
+    def execute_command(self, command):
+        conn = self.open_connection()
+        with conn.cursor() as cursor:
+            result = cursor.execute(command)
+            rows = cursor.fetchall()
+        conn.close()
+        return rows
+
+    def stringify_what(self, results, type):
+        #Data response [{'id': 2, 'event_type': 'lab', 'event_date_start': 'January 19 1:50pm', 'event_date_end': 'January 19 4pm', 'day_start': 19, 'day_end': 19, 'equipment_needed': 'water bottle, pen, paper, compass, protractor', 'uniform': 'OCP', 'event_location': 'Back 40', 'event_focus': 'Land Nav', 'cadre_comments': 'None'}]
+        response = 'I could find this information on your request for ' + type + '(s)\n'
+        counter = 1
+        print(f'results are {results}')
+        for result in results:
+            if (self.use_all == False and counter > 1):
+                print('use all is false')
+                return response
+            response = response + type + ' ' + str(counter) + ':\n'
+            response = response + 'The start time is ' + result['event_date_start'] + ' and the end time is ' + result['event_date_end'] + '\n'
+            response = response + 'The equipment needed is: ' + result['equipment_needed'] + '\n'
+            response = response + 'The uniform is ' + result['uniform'] + '\n'
+            response = response + 'The location is ' + result['event_location'] + '\n'
+            response = response + 'The focus is ' + result['event_focus'] + '\n'
+            response = response + 'And cadre comments are: ' + result['cadre_comments'] + '\n'
+            counter = counter + 1
+        return response
+    
+    def stringify_where(self, results, type):
+        #Data response [{'id': 2, 'event_type': 'lab', 'event_date_start': 'January 19 1:50pm', 'event_date_end': 'January 19 4pm', 'day_start': 19, 'day_end': 19, 'equipment_needed': 'water bottle, pen, paper, compass, protractor', 'uniform': 'OCP', 'event_location': 'Back 40', 'event_focus': 'Land Nav', 'cadre_comments': 'None'}]
+        response = 'The locations I could find for the following ' + type + '(s) are\n'
+        counter = 1
+        print(f'results are {results}')
+        for result in results:
+            if (self.use_all == False and counter > 1):
+                print('use all is false')
+                return response
+            response = response + type + ' ' + str(counter) + ':\n'
+            response = response + result['event_location'] + ' at ' + result['event_date_start'] + ' until ' + result['event_date_end'] + '\n'
+            counter = counter + 1
+        return response
+
+    def stringify_when(self, results, type):
+        #Data response [{'id': 2, 'event_type': 'lab', 'event_date_start': 'January 19 1:50pm', 'event_date_end': 'January 19 4pm', 'day_start': 19, 'day_end': 19, 'equipment_needed': 'water bottle, pen, paper, compass, protractor', 'uniform': 'OCP', 'event_location': 'Back 40', 'event_focus': 'Land Nav', 'cadre_comments': 'None'}]
+        response = 'The time I could find for the following ' + type + '(s) are\n'
+        counter = 1
+        print(f'results are {results}')
+        for result in results:
+            if (self.use_all == False and counter > 1):
+                print('use all is false')
+                return response
+            response = response + type + ' ' + str(counter) + ':\n'
+            response = response + result['event_date_start'] + ' until ' + result['event_date_end'] + '\n'
+            counter = counter + 1
+        return response

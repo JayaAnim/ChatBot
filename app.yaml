@@ -1,1 +1,7 @@
 runtime: python310
+
+env_variables:
+  CLOUD_SQL_USERNAME: argochatbot
+  CLOUD_SQL_PASSWORD: Bella0121!
+  CLOUD_SQL_DATABASE_NAME: rotcspring
+  CLOUD_SQL_CONNECTION_NAME: lofty-object-374801:us-east1:argochatbot
