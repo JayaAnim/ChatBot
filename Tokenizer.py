@@ -17,6 +17,9 @@ class Tokenizer:
         #keeps track of question errors when tockenizing
         self.token_error = 0
 
+        #ensures results are found
+        self.result_error = 0
+
         #keeps track of question type
         self.question_type = None
         #keeps track of question subject
@@ -144,6 +147,8 @@ class Tokenizer:
 
         #keeps track of question errors when tockenizing
         self.token_error = 0
+
+        self.result_error = 0
 
         #keeps track of question type
         self.question_type = None
@@ -275,10 +280,14 @@ class Tokenizer:
         with conn.cursor() as cursor:
             result = cursor.execute(command)
             rows = cursor.fetchall()
+            if result == 0:
+                self.result_error = 1
         conn.close()
         return rows
 
     def stringify_what(self, results, type):
+        if self.result_error == 1:
+            return 'Sorry I could not find any information for your request'
         #Data response [{'id': 2, 'event_type': 'lab', 'event_date_start': 'January 19 1:50pm', 'event_date_end': 'January 19 4pm', 'day_start': 19, 'day_end': 19, 'equipment_needed': 'water bottle, pen, paper, compass, protractor', 'uniform': 'OCP', 'event_location': 'Back 40', 'event_focus': 'Land Nav', 'cadre_comments': 'None'}]
         response = 'I could find this information on your request for ' + type + '(s)\n'
         counter = 1
@@ -298,6 +307,8 @@ class Tokenizer:
         return response
     
     def stringify_where(self, results, type):
+        if self.result_error == 1:
+            return 'Sorry I could not find any information for your request'
         #Data response [{'id': 2, 'event_type': 'lab', 'event_date_start': 'January 19 1:50pm', 'event_date_end': 'January 19 4pm', 'day_start': 19, 'day_end': 19, 'equipment_needed': 'water bottle, pen, paper, compass, protractor', 'uniform': 'OCP', 'event_location': 'Back 40', 'event_focus': 'Land Nav', 'cadre_comments': 'None'}]
         response = 'The locations I could find for the following ' + type + '(s) are\n'
         counter = 1
@@ -307,11 +318,13 @@ class Tokenizer:
                 print('use all is false')
                 return response
             response = response + type + ' ' + str(counter) + ':\n'
-            response = response + result['event_location'] + ' at ' + result['event_date_start'] + ' until ' + result['event_date_end'] + '\n'
+            response = response + result['event_location'] + ' at ' + result['event_date_start'] + '\n'
             counter = counter + 1
         return response
 
     def stringify_when(self, results, type):
+        if self.result_error == 1:
+            return 'Sorry I could not find any information for your request'
         #Data response [{'id': 2, 'event_type': 'lab', 'event_date_start': 'January 19 1:50pm', 'event_date_end': 'January 19 4pm', 'day_start': 19, 'day_end': 19, 'equipment_needed': 'water bottle, pen, paper, compass, protractor', 'uniform': 'OCP', 'event_location': 'Back 40', 'event_focus': 'Land Nav', 'cadre_comments': 'None'}]
         response = 'The time I could find for the following ' + type + '(s) are\n'
         counter = 1
